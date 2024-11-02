@@ -17,13 +17,16 @@ RUN apt-get update && apt-get install -y \
         gd \
         zip
 
+# Instalar e configurar Xdebug
+RUN pecl install xdebug \
+    && docker-php-ext-enable xdebug
+
+# Configurar PHP e Xdebug
+COPY docker/php/php.ini /usr/local/etc/php/conf.d/custom.ini
+COPY docker/php/xdebug.ini /usr/local/etc/php/conf.d/xdebug.ini
+
 # Instalar Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-
-# Configurar PHP
-RUN echo "upload_max_filesize = 64M" > /usr/local/etc/php/conf.d/uploads.ini \
-    && echo "post_max_size = 64M" >> /usr/local/etc/php/conf.d/uploads.ini \
-    && echo "memory_limit = 256M" >> /usr/local/etc/php/conf.d/uploads.ini
 
 WORKDIR /var/www
 
@@ -33,7 +36,6 @@ COPY . .
 # Permissões para o usuário www-data
 RUN chown -R www-data:www-data /var/www
 
-# Expor porta do PHP-FPM
 EXPOSE 9000
 
 CMD ["php-fpm"]
